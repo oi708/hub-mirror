@@ -1,0 +1,30 @@
+name: Mirror Docker Images
+on:
+  workflow_dispatch:
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+        
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GHCR_TOKEN }}
+        
+    - name: Mirror nginx image
+      run: |
+        go run main.go \
+          --username=${{ github.actor }} \
+          --password=${{ secrets.GHCR_TOKEN }} \
+          --repository=ghcr.io/${{ github.repository_owner }} \
+          --content='{"mirrors": ["nginx"]}'
